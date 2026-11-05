@@ -68,6 +68,7 @@ main{max-width:none!important;width:100%}
 .sheet h2{margin:0;color:var(--navy)}.sheet p{margin:4px 0 14px;color:var(--mu);font-size:14px}.sheet table{margin-bottom:16px}
 @media print{body.pvon>*:not(#pv){display:none!important}body.pvon #pv{position:static;background:none;padding:0;display:block;overflow:visible}.pvb{display:none!important}.sheet{border-radius:0;padding:0;max-width:none}}
 @media print{header,nav,#toast,.noprint{display:none!important}.page{display:none!important}#p-report{display:block!important}body{background:#fff}.card{box-shadow:none}}
+.seg{display:flex;gap:8px;margin:6px 0 4px}.seg button{flex:1;background:#e8eefb;color:var(--navy);padding:11px 6px}.seg button.on{background:var(--blue);color:#fff}
 </style></head><body>
 <div id="loader"><div class="sp"></div></div><div id="toast"></div>
 
@@ -81,12 +82,11 @@ main{max-width:none!important;width:100%}
 
 <section id="setup" hidden><div class="lbox">
 <div class="logo">🎯</div><h1>Set your goal</h1><p>New number <b id="stm"></b>. No goal is set yet, create one to start saving.</p>
-<label for="sgl">Monthly goal (₹)</label>
+<label>Choose goal type</label>
+<div class="seg" id="sgt"><button type="button" data-t="daily">Daily</button><button type="button" data-t="monthly" class="on">Monthly</button><button type="button" data-t="yearly">Yearly</button></div>
+<label for="sgl" id="sgll">Monthly goal (₹)</label>
 <input id="sgl" type="number" inputmode="decimal" min="1" step="any" placeholder="e.g. 20000">
-<label for="syg">Yearly goal (₹)</label>
-<input id="syg" type="number" inputmode="decimal" min="1" step="any" placeholder="auto: monthly × 12">
-<label for="sdt">Daily goal (₹)</label>
-<input id="sdt" type="number" inputmode="decimal" min="1" step="any" placeholder="auto: monthly ÷ 30">
+<p class="lg" id="sgp" style="margin:8px 0 0"></p>
 <div style="height:14px"></div><button class="pri" id="sgo" style="width:100%">Save goal &amp; continue</button>
 <div style="height:10px"></div><button class="sec" id="sback" style="width:100%">← Use another number</button>
 </div></section>
@@ -103,10 +103,9 @@ main{max-width:none!important;width:100%}
 <div class="lg"><i style="background:#0d9488"></i>Saved &nbsp;<i style="background:#bfdbfe"></i>Remaining</div></div>
 </div></div>
 <div class="card"><div class="grid">
-<div class="st"><span>Monthly goal</span><b id="sg"></b></div><div class="st"><span>Saved this month</span><b id="ss"></b></div>
+<div class="st"><span id="sgl2">Monthly goal</span><b id="sg"></b></div><div class="st"><span id="ssl2">Saved this month</span><b id="ss"></b></div>
 <div class="st"><span>Remaining</span><b id="sr"></b></div><div class="st"><span>Daily goal</span><b id="sd"></b></div>
-<div class="st"><span>Saving days</span><b id="sn"></b></div><div class="st"><span>Today saved</span><b id="stt"></b></div>
-<div class="st"><span>Yearly goal</span><b id="syl"></b></div><div class="st"><span>Saved this year</span><b id="sys"></b></div></div></div>
+<div class="st"><span>Saving days</span><b id="sn"></b></div><div class="st"><span>Today saved</span><b id="stt"></b></div></div></div>
 <div class="card"><h3>Quick Save (today)</h3><div class="row"><input id="qa" type="number" inputmode="decimal" min="0" step="any" placeholder="Amount ₹"><button class="pri" id="qs">Save</button></div>
 <p class="lg" style="margin:8px 0 0">Amounts saved on the same day are added together.</p></div>
 </section>
@@ -121,9 +120,10 @@ main{max-width:none!important;width:100%}
 
 <section class="page" id="p-set"><div class="card"><h3>Settings</h3>
 <div class="st"><span>Mobile number</span><b id="sm"></b></div>
-<label>Monthly goal (₹)</label><input id="ig" type="number" inputmode="decimal" min="1" step="any">
-<label>Yearly goal (₹)</label><input id="iy" type="number" inputmode="decimal" min="1" step="any">
-<label>Daily goal (₹)</label><input id="id" type="number" inputmode="decimal" min="1" step="any">
+<label>Choose goal type</label>
+<div class="seg" id="igt"><button type="button" data-t="daily">Daily</button><button type="button" data-t="monthly" class="on">Monthly</button><button type="button" data-t="yearly">Yearly</button></div>
+<label id="igl">Monthly goal (₹)</label><input id="ig" type="number" inputmode="decimal" min="1" step="any">
+<p class="lg" id="igp" style="margin:8px 0 0"></p>
 <div style="height:14px"></div><button class="pri" id="sv" style="width:100%">Save settings</button>
 <div style="height:10px"></div><button class="dng" id="rst" style="width:100%">🧹 Clear data</button>
 <div style="height:10px"></div><button class="dng" id="del" style="width:100%">🗑 Delete account</button></div>
@@ -161,6 +161,13 @@ const MN=['January','February','March','April','May','June','July','August','Sep
 const sum=a=>a.reduce((t,e)=>t+(+e[1]||0),0);
 const mEnt=(y,m)=>Object.entries(D.entries||{}).filter(([k,v])=>k.startsWith(y+'-'+pad(m+1)+'-')&&+v>0).sort((a,b)=>a[0]<b[0]?-1:1);
 const goal=()=>+D.goal>0?+D.goal:1,tgt=()=>+D.dailyTarget>0?+D.dailyTarget:0,ygoal=()=>+D.yearlyGoal>0?+D.yearlyGoal:goal()*12;
+const KEY={daily:'dailyTarget',monthly:'goal',yearly:'yearlyGoal'},LBL={daily:'Daily goal (₹)',monthly:'Monthly goal (₹)',yearly:'Yearly goal (₹)'},r2=n=>Math.round(n*100)/100;
+function derive(t,v){let g,y,d;if(t==='daily'){d=v;g=v*30;y=v*365}else if(t==='yearly'){y=v;g=v/12;d=v/365}else{g=v;y=v*12;d=v/30}return{goalType:t,goal:r2(g),yearlyGoal:r2(y),dailyTarget:r2(d)}}
+let sT='monthly',iT='monthly',iDirty=false;
+function mkSeg(seg,lbl,inp,out,getT,setT,dirty){
+ const upd=()=>{const t=getT();$$(seg+' button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$(lbl).textContent=LBL[t];const v=parseFloat($(inp).value);if(v>0){const x=derive(t,v);$(out).textContent='≈ Daily '+inr(x.dailyTarget)+' · Monthly '+inr(x.goal)+' · Yearly '+inr(x.yearlyGoal)}else $(out).textContent=''};
+ $$(seg+' button').forEach(b=>b.onclick=()=>{const o=getT(),n=b.dataset.t,v=parseFloat($(inp).value);if(v>0)$(inp).value=r2(derive(o,v)[KEY[n]]);setT(n);dirty();upd()});
+ $(inp).addEventListener('input',()=>{dirty();upd()});return upd}
 let tt;function toast(m,bad){const t=$('#toast');t.textContent=m;t.className='show'+(bad?' bad':'');clearTimeout(tt);tt=setTimeout(()=>t.className='',3200)}
 const busy=b=>$('#loader').classList.toggle('on',b);
 function fail(e){busy(false);const m=(e&&e.message)||String(e);toast(/permission/i.test(m)||(e&&e.code==='PERMISSION_DENIED')?'Firebase rules blocked this. Check database rules.':'Network/Firebase error: '+m,1)}
@@ -176,23 +183,22 @@ function login(m){busy(true);if(R)R.off();D=null;M=m;localStorage.setItem('lastM
  R.on('value',s=>{clearTimeout(to);busy(false);const v=s.val();
   if(!s.exists()||!(+v.goal>0)){D=null;$('#app').hidden=true;$('#login').hidden=true;$('#setup').hidden=false;$('#stm').textContent=m;return}
   D=v;D.entries=D.entries||{};$('#login').hidden=true;$('#setup').hidden=true;$('#app').hidden=false;$('#hm').textContent=m;render()},e=>{clearTimeout(to);if(R)R.off();R=D=M=null;fail(e)})}
-function logout(){if(R)R.off();R=D=M=null;localStorage.removeItem('session');localStorage.removeItem('lastMobile');$('#mob').value='';$('#app').hidden=true;$('#setup').hidden=true;$('#login').hidden=false;$('#sgl').value=$('#syg').value=$('#sdt').value='';show('home')}
+function logout(){if(R)R.off();R=D=M=null;localStorage.removeItem('session');localStorage.removeItem('lastMobile');$('#mob').value='';$('#app').hidden=true;$('#setup').hidden=true;$('#login').hidden=false;$('#sgl').value='';sT='monthly';updS();show('home')}
 $('#sback').onclick=logout;
-$('#sgl').addEventListener('input',()=>{const g=parseFloat($('#sgl').value);$('#sdt').value=g>0?Math.round(g/30):'';$('#syg').value=g>0?Math.round(g*12):''});
-$('#ig').addEventListener('input',()=>{const g=parseFloat($('#ig').value);$('#id').value=g>0?Math.round(g/30):'';$('#iy').value=g>0?Math.round(g*12):''});
-$('#sgo').onclick=()=>{const g=amt($('#sgl').value),y=amt($('#syg').value),d=amt($('#sdt').value);if(g===null||y===null||d===null)return toast('Enter valid monthly, yearly and daily goal',1);
- busy(true);R.set({goal:g,yearlyGoal:y,dailyTarget:d,updatedAt:TS}).catch(fail)};
+const updS=mkSeg('#sgt','#sgll','#sgl','#sgp',()=>sT,t=>sT=t,()=>{}),updI=mkSeg('#igt','#igl','#ig','#igp',()=>iT,t=>iT=t,()=>{iDirty=true});
+$('#sgo').onclick=()=>{const v=amt($('#sgl').value);if(v===null)return toast('Enter a valid goal amount',1);
+ busy(true);R.set({...derive(sT,v),updatedAt:TS}).catch(fail)};
 $('#lo').onclick=logout;
 
-function show(p){page=p;$$('.page').forEach(x=>x.classList.toggle('on',x.id==='p-'+p));$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));scrollTo(0,0);if(p==='users')loadUsers();if(D)render()}
+function show(p){page=p;iDirty=false;$$('.page').forEach(x=>x.classList.toggle('on',x.id==='p-'+p));$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));scrollTo(0,0);if(p==='users')loadUsers();if(D)render()}
 $$('nav button').forEach(b=>b.onclick=()=>show(b.dataset.p));$('#hu').onclick=()=>show('users');
 
 function render(){
- const t=new Date(),y=t.getFullYear(),m=t.getMonth(),es=mEnt(y,m),sv=sum(es),g=goal(),rem=Math.max(g-sv,0),pc=Math.min(sv/g*100,100);
- $('#mt').textContent=MN[m]+' '+y;$('#sg').textContent=inr(g);$('#ss').textContent=inr(sv);$('#sr').textContent=inr(rem);$('#sd').textContent=inr(tgt());$('#syl').textContent=inr(ygoal());$('#sys').textContent=inr(Object.entries(D.entries).filter(([k,v])=>k.startsWith(y+'-')&&+v>0).reduce((a,[k,v])=>a+(+v),0));$('#sn').textContent=es.length;
+ const t=new Date(),y=t.getFullYear(),m=t.getMonth(),es=mEnt(y,m),sv=sum(es),g=goal(),gt=D.goalType||'monthly',ys=Object.entries(D.entries).filter(([k,v])=>k.startsWith(y+'-')&&+v>0).reduce((a,[k,v])=>a+(+v),0),ts=+D.entries[dk(y,m,t.getDate())]||0,pv=gt==='daily'?ts:gt==='yearly'?ys:sv,tg=gt==='daily'?(tgt()||1):gt==='yearly'?ygoal():g,rem=Math.max(tg-pv,0),pc=Math.min(pv/tg*100,100);
+ $('#mt').textContent=gt==='daily'?'Today · '+t.getDate()+' '+MN[m]+' '+y:gt==='yearly'?'Year '+y:MN[m]+' '+y;$('#sgl2').textContent=gt==='daily'?'Daily goal':gt==='yearly'?'Yearly goal':'Monthly goal';$('#ssl2').textContent=gt==='daily'?'Saved today':gt==='yearly'?'Saved this year':'Saved this month';$('#sg').textContent=inr(tg);$('#ss').textContent=inr(pv);$('#sr').textContent=inr(rem);$('#sd').textContent=inr(tgt());$('#sn').textContent=es.length;
  $('#stt').textContent=inr(D.entries[dk(y,m,t.getDate())]||0);$('#pct').textContent=Math.round(pc)+'%';
  $('#ring').style.strokeDashoffset=326.7*(1-pc/100);$('#dn').style.strokeDasharray=(pc/100*238.8)+' 238.8';
- $('#sm').textContent=M;if(document.activeElement.id!=='ig')$('#ig').value=D.goal||'';if(document.activeElement.id!=='id')$('#id').value=D.dailyTarget||'';if(document.activeElement.id!=='iy')$('#iy').value=D.yearlyGoal||Math.round(goal()*12);
+ $('#sm').textContent=M;if(!iDirty){iT=D.goalType||'monthly';$('#ig').value=D[KEY[iT]]||'';updI()}
  const vy=vd.getFullYear(),vm=vd.getMonth(),label=MN[vm]+' '+vy;$$('.mtl').forEach(e=>e.textContent=label);
  // calendar
  let h=['S','M','T','W','T','F','S'].map(d=>`<div class="h">${d}</div>`).join('');
@@ -218,12 +224,12 @@ $('#mD').onclick=()=>{if(!confirm('Delete this entry?'))return;busy(true);R.upda
 $('#qs').onclick=()=>{const a=amt($('#qa').value);if(a===null)return toast('Enter a valid amount greater than 0',1);
  const t=new Date(),k=dk(t.getFullYear(),t.getMonth(),t.getDate());busy(true);
  R.child('entries/'+k).transaction(c=>Math.round(((+c||0)+a)*100)/100).then(()=>{R.child('updatedAt').set(TS);busy(false);$('#qa').value='';toast('Added '+inr(a)+' to today ✓')}).catch(fail)};
-$('#sv').onclick=()=>{const g=amt($('#ig').value),y=amt($('#iy').value),d=amt($('#id').value);if(g===null||y===null||d===null)return toast('Enter valid monthly, yearly and daily goal',1);
- busy(true);R.update({goal:g,yearlyGoal:y,dailyTarget:d,updatedAt:TS}).then(()=>{busy(false);toast('Settings saved ✓')}).catch(fail)};
+$('#sv').onclick=()=>{const v=amt($('#ig').value);if(v===null)return toast('Enter a valid goal amount',1);
+ busy(true);R.update({...derive(iT,v),updatedAt:TS}).then(()=>{iDirty=false;busy(false);toast('Settings saved ✓')}).catch(fail)};
 $('#rst').onclick=()=>{if(!confirm('Clear ALL savings entries for '+M+'? Goals stay. This cannot be undone.'))return;if((prompt('Type CLEAR to confirm')||'').trim().toUpperCase()!=='CLEAR')return toast('Clear cancelled');
  busy(true);R.update({entries:null,updatedAt:TS}).then(()=>{busy(false);toast('All data cleared')}).catch(fail)};
 $('#del').onclick=()=>{if(!confirm('Delete account '+M+' permanently? All goals and savings will be removed.'))return;if((prompt('Type DELETE to confirm')||'').trim().toUpperCase()!=='DELETE')return toast('Delete cancelled');
- busy(true);const r=R;r.off();r.remove().then(()=>{busy(false);logout();toast('Account deleted')}).catch(e=>{fail(e);login(M)})};
+ busy(true);const r=R;r.off();r.remove().then(()=>{localStorage.removeItem('session');localStorage.removeItem('lastMobile');sessionStorage.setItem('msg','Account deleted. Enter a mobile number to start fresh.');location.reload()}).catch(e=>{fail(e);login(M)})};
 
 function csv(){const y=vd.getFullYear(),m=vd.getMonth(),e=mEnt(y,m),s=sum(e);
  const rows=[['Mobile',M],['Month',MN[m]+' '+y],['Goal',goal()],['Total saved',s],['Remaining',Math.max(goal()-s,0)],['Completed %',(Math.min(s/goal()*100,100)).toFixed(1)],[],['Date','Amount'],...e];
@@ -246,5 +252,6 @@ function drawUsers(){const q=$('#us').value.trim(),l=UD.filter(u=>u.k.includes(q
  $('#ut').textContent=l.length;$('#uc').textContent=inr(l.reduce((t,u)=>t+u.es,0));
  $('#ul').innerHTML=l.length?`<table><tr><th>Mobile</th><th>Saved</th><th>Goal</th><th>%</th><th>Updated</th></tr>${l.map(u=>`<tr><td>${esc(u.k)}</td><td>${inr(u.es)}</td><td>${inr(u.g)}</td><td>${u.g?Math.round(u.es/u.g*100):0}%</td><td>${u.u?new Date(u.u).toLocaleDateString('en-IN'):'-'}</td></tr>`).join('')}</table>`:'<p class="lg">No users found.</p>'}
 $('#us').oninput=drawUsers;$('#ur').onclick=loadUsers;
+{const mg=sessionStorage.getItem('msg');if(mg){sessionStorage.removeItem('msg');toast(mg)}}
 {const ss=localStorage.getItem('session');if(/^\d{10}$/.test(ss||''))login(ss)}
 </script></body></html>
