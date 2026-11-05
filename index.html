@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Goal Savings</title>
+<style>
+:root{--navy:#0b2447;--blue:#1d4ed8;--teal:#0d9488;--green:#16a34a;--bg:#f4f7fb;--card:#fff;--tx:#0f172a;--mu:#64748b;--ln:#e2e8f0;--red:#dc2626}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:var(--bg);color:var(--tx)}
+[hidden]{display:none!important}
+button{font:inherit;cursor:pointer;border:0;border-radius:12px;padding:12px 16px;font-weight:600;transition:transform .15s,opacity .15s}
+button:hover{transform:translateY(-1px)}button:active{transform:scale(.97)}
+.pri{background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff}
+.sec{background:#e8eefb;color:var(--navy)}.dng{background:#fee2e2;color:var(--red)}
+input{font:inherit;width:100%;padding:13px;border:1.5px solid var(--ln);border-radius:12px;background:#fff;outline:0}
+input:focus{border-color:var(--blue)}
+label{display:block;font-size:13px;color:var(--mu);margin:12px 0 5px}
+#loader{position:fixed;inset:0;background:rgba(255,255,255,.55);display:none;align-items:center;justify-content:center;z-index:99}
+#loader.on{display:flex}
+.sp{width:42px;height:42px;border:4px solid #cfe0ff;border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 12px);transform:translate(-50%,-90px);background:var(--green);color:#fff;padding:12px 18px;border-radius:14px;z-index:100;transition:transform .3s;max-width:92%;font-size:14px;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+#toast.show{transform:translate(-50%,0)}#toast.bad{background:var(--red)}
+#login{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:24px;background:linear-gradient(160deg,var(--navy),#12408a 60%,var(--teal));}
+.lbox{background:#fff;border-radius:24px;padding:26px;max-width:420px;width:100%;margin:0 auto;animation:up .5s}
+.lbox h1{margin:6px 0 4px;color:var(--navy);font-size:24px}.lbox p{color:var(--mu);margin:0 0 10px;font-size:14px}
+.logo{width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+header{background:var(--navy);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 10px) 16px 10px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:20}
+header b{font-size:16px}header small{display:block;font-size:11px;opacity:.75}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f59e0b;margin-right:5px}.dot.ok{background:#22c55e}
+.hb{background:rgba(255,255,255,.15);color:#fff;padding:8px 12px;font-size:13px}
+main{max-width:760px;margin:0 auto;padding:14px 14px calc(90px + env(safe-area-inset-bottom,0px))}
+.page{display:none}.page.on{display:block;animation:up .35s}
+.card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:14px;box-shadow:0 2px 12px rgba(15,36,71,.07);animation:up .45s}
+.card h3{margin:0 0 10px;font-size:15px;color:var(--navy)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.st{background:#f1f6ff;border-radius:14px;padding:12px}.st span{font-size:12px;color:var(--mu)}.st b{display:block;font-size:18px;margin-top:3px;color:var(--navy)}
+.charts{display:flex;gap:10px;align-items:center;justify-content:space-around;flex-wrap:wrap}
+.ch{position:relative;width:150px;height:150px}.ch svg{transform:rotate(-90deg);width:100%;height:100%}
+.ch circle{fill:none;transition:stroke-dashoffset 1s ease,stroke-dasharray 1s ease}
+.ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:24px;color:var(--navy)}.ctr small{font-size:11px;color:var(--mu);font-weight:400}
+.lg{font-size:13px;color:var(--mu)}.lg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+.row{display:flex;gap:10px}.row>*{flex:1}.row button{flex:0 0 auto}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.cal .h{text-align:center;font-size:11px;color:var(--mu);padding:4px 0}
+.cd{aspect-ratio:1/1.1;border-radius:12px;background:#f8fafc;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:transform .15s;min-width:0}
+.cd:active{transform:scale(.92)}.cd small{font-size:9.5px;font-weight:700;color:#fff}
+.cd.s{background:var(--green);color:#fff}.cd.t{outline:2.5px solid var(--blue);outline-offset:-2px;font-weight:700}
+.cd.e{background:none;cursor:default}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.mh b{font-size:17px;color:var(--navy)}
+.mh button{padding:8px 14px;background:#e8eefb;color:var(--navy)}
+table{width:100%;border-collapse:collapse;font-size:14px}th,td{padding:9px 6px;border-bottom:1px solid var(--ln);text-align:left}td:last-child,th:last-child{text-align:right}
+#modal{position:fixed;inset:0;background:rgba(11,36,71,.5);display:none;align-items:flex-end;justify-content:center;z-index:50}
+#modal.on{display:flex}.mb{background:#fff;width:100%;max-width:480px;border-radius:24px 24px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));animation:up .25s}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom,0px);z-index:30}
+nav button{flex:1;background:none;border-radius:0;color:var(--mu);font-size:11px;padding:9px 0;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button span{font-size:20px}nav button.on{color:var(--blue)}
+.note{font-size:12.5px;color:var(--mu);line-height:1.5;background:#fff7ed;border-radius:12px;padding:10px}
+html,body{width:100%;min-height:100%;margin:0}
+main{max-width:none!important;width:100%}
+.lbox{max-width:460px}
+@media(min-width:700px){main{padding:20px 28px calc(90px + env(safe-area-inset-bottom,0px))}header{padding-left:28px;padding-right:28px}.cd{aspect-ratio:1/.75;font-size:16px}.cd small{font-size:12px}.grid{grid-template-columns:repeat(3,1fr)}.card{padding:22px}.ch{width:190px;height:190px}.ch .ctr{font-size:30px}}
+@media(min-width:1000px){#p-home.on{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}#p-home .card{margin:0}#p-set.on{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}#p-set .card,#p-set .note{margin:0}#p-set .note{grid-column:1/-1}#p-report.on{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}#p-report .card{margin:0}#p-report .row{grid-column:1/-1}.cd{aspect-ratio:1/.6}}
+#pv{position:fixed;inset:0;background:rgba(11,36,71,.65);display:none;z-index:60;overflow:auto;padding:16px}
+#pv.on{display:block}
+.pvb{max-width:820px;margin:0 auto 12px;display:flex;gap:10px}.pvb button{flex:1}
+.sheet{background:#fff;max-width:820px;margin:0 auto;border-radius:12px;padding:24px 22px}
+.sheet h2{margin:0;color:var(--navy)}.sheet p{margin:4px 0 14px;color:var(--mu);font-size:14px}.sheet table{margin-bottom:16px}
+@media print{body.pvon>*:not(#pv){display:none!important}body.pvon #pv{position:static;background:none;padding:0;display:block;overflow:visible}.pvb{display:none!important}.sheet{border-radius:0;padding:0;max-width:none}}
+@media print{header,nav,#toast,.noprint{display:none!important}.page{display:none!important}#p-report{display:block!important}body{background:#fff}.card{box-shadow:none}}
+</style></head><body>
+<div id="loader"><div class="sp"></div></div><div id="toast"></div>
+
+<section id="login"><div class="lbox">
+<div class="logo">₹</div><h1>Goal Savings</h1><p>Enter your mobile number to open your savings tracker.</p>
+<label for="mob">10-digit mobile number</label>
+<input id="mob" type="tel" inputmode="numeric" maxlength="10" placeholder="9876543210" autocomplete="tel">
+<div style="height:14px"></div><button class="pri" id="go" style="width:100%">Continue</button>
+<p style="margin-top:14px;font-size:12px">No OTP or password. Anyone who knows your number can open this data.</p>
+</div></section>
+
+<div id="app" hidden>
+<header><div><b>Goal Savings</b><small><span class="dot" id="dot"></span><span id="cs">Connecting…</span> · <span id="hm"></span></small></div>
+<button class="hb" id="hu">👥 All Users</button></header>
+<main>
+<section class="page on" id="p-home">
+<div class="card"><h3 id="mt">This month</h3>
+<div class="charts">
+<div class="ch"><svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" stroke="#e2e8f0" stroke-width="10"/><circle id="ring" cx="60" cy="60" r="52" stroke="url(#g)" stroke-width="10" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"/><defs><linearGradient id="g"><stop offset="0" stop-color="#1d4ed8"/><stop offset="1" stop-color="#0d9488"/></linearGradient></defs></svg><div class="ctr"><span id="pct">0%</span><small>completed</small></div></div>
+<div style="text-align:center"><div class="ch" style="width:120px;height:120px"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" stroke="#bfdbfe" stroke-width="16"/><circle id="dn" cx="50" cy="50" r="38" stroke="#0d9488" stroke-width="16" stroke-dasharray="0 238.8"/></svg></div>
+<div class="lg"><i style="background:#0d9488"></i>Saved &nbsp;<i style="background:#bfdbfe"></i>Remaining</div></div>
+</div></div>
+<div class="card"><div class="grid">
+<div class="st"><span>Monthly goal</span><b id="sg"></b></div><div class="st"><span>Saved this month</span><b id="ss"></b></div>
+<div class="st"><span>Remaining</span><b id="sr"></b></div><div class="st"><span>Daily target</span><b id="sd"></b></div>
+<div class="st"><span>Saving days</span><b id="sn"></b></div><div class="st"><span>Today saved</span><b id="stt"></b></div></div></div>
+<div class="card"><h3>Quick Save (today)</h3><div class="row"><input id="qa" type="number" inputmode="decimal" min="0" step="any" placeholder="Amount ₹"><button class="pri" id="qs">Save</button></div>
+<p class="lg" style="margin:8px 0 0">Amounts saved on the same day are added together.</p></div>
+</section>
+
+<section class="page" id="p-cal"><div class="card"><div class="mh"><button id="cp">‹</button><b class="mtl"></b><button id="cn">›</button></div><div class="cal" id="cal"></div>
+<p class="lg" style="margin:10px 0 0">Tap any date to add, edit or delete savings.</p></div></section>
+
+<section class="page" id="p-report"><div class="card"><div class="mh noprint"><button id="rp">‹</button><b class="mtl"></b><button id="rn">›</button></div>
+<h3 id="rh"></h3><div class="grid" id="rs"></div></div>
+<div class="card"><h3>Date-wise savings</h3><div id="rt"></div></div>
+<div class="row noprint" style="margin-bottom:14px"><button class="pri" id="csv">⬇ Download CSV</button><button class="sec" id="prt">🖨 Print / PDF</button></div></section>
+
+<section class="page" id="p-set"><div class="card"><h3>Settings</h3>
+<div class="st"><span>Mobile number</span><b id="sm"></b></div>
+<label>Monthly goal (₹)</label><input id="ig" type="number" inputmode="decimal" min="1" step="any">
+<label>Daily saving target (₹)</label><input id="id" type="number" inputmode="decimal" min="1" step="any">
+<div style="height:14px"></div><button class="pri" id="sv" style="width:100%">Save settings</button></div>
+<div class="card"><h3>Data</h3><div class="row"><button class="sec" id="csv2">Export CSV</button><button class="sec" id="prt2">Print report</button></div>
+<div style="height:10px"></div><button class="dng" id="rst" style="width:100%">Reset all my savings</button></div>
+<div class="card"><button class="sec" id="lo" style="width:100%">Logout</button></div>
+<div class="note"><b>Security:</b> there is no login proof, only a mobile number. Anyone who knows a number (or has this page's Firebase config) can read or change that data. Do not store sensitive information. See the Firebase rules notes shared with this app.</div></section>
+
+<section class="page" id="p-users"><div class="card"><h3>All Users (personal overview)</h3>
+<div class="row"><input id="us" placeholder="Search mobile number" inputmode="numeric"><button class="sec" id="ur">↻ Refresh</button></div>
+<div class="grid" style="margin-top:12px"><div class="st"><span>Total users</span><b id="ut">0</b></div><div class="st"><span>Combined savings</span><b id="uc">₹0</b></div></div></div>
+<div class="card" style="overflow-x:auto"><div id="ul"></div></div>
+<div class="note">Not a secure admin system: this list is visible to anyone using this page.</div></section>
+</main>
+<nav><button data-p="home" class="on"><span>🏠</span>Home</button><button data-p="cal"><span>📅</span>Calendar</button><button data-p="report"><span>📊</span>Reports</button><button data-p="set"><span>⚙️</span>Settings</button></nav>
+</div>
+
+<div id="modal"><div class="mb"><h3 id="md" style="margin:0 0 6px;color:var(--navy)"></h3>
+<label>Amount saved (₹)</label><input id="ma" type="number" inputmode="decimal" min="0" step="any">
+<div class="row" style="margin-top:14px"><button class="pri" id="mS">Save</button><button class="dng" id="mD">Delete</button><button class="sec" id="mC">Cancel</button></div></div></div>
+
+<div id="pv"><div class="pvb"><button class="pri" id="pvp">🖨 Print / Save as PDF</button><button class="sec" id="pvc">✕ Close</button></div><div class="sheet" id="pvs"></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig={apiKey:"AIzaSyAZCLZuaQ0GIjlnCB95Fp-gU_LF4MiRM4",authDomain:"sanhubweb1.firebaseapp.com",databaseURL:"https://sanhubweb1-default-rtdb.firebaseio.com",projectId:"sanhubweb1",storageBucket:"sanhubweb1.firebasestorage.app",messagingSenderId:"145459093063",appId:"1:145459093063:web:df17c173b97464906b5b62",measurementId:"G-WFGX3ZE55G"};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+firebase.initializeApp(firebaseConfig);const db=firebase.database(),TS=firebase.database.ServerValue.TIMESTAMP;
+let M=null,D=null,R=null,vd=new Date(),mdate=null,page='home';vd.setDate(1);
+const pad=n=>String(n).padStart(2,'0'),dk=(y,m,d)=>y+'-'+pad(m+1)+'-'+pad(d);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inr=n=>'₹'+(+n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
+const MN=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const sum=a=>a.reduce((t,e)=>t+(+e[1]||0),0);
+const mEnt=(y,m)=>Object.entries(D.entries||{}).filter(([k,v])=>k.startsWith(y+'-'+pad(m+1)+'-')&&+v>0).sort((a,b)=>a[0]<b[0]?-1:1);
+const goal=()=>+D.goal>0?+D.goal:22800,tgt=()=>+D.dailyTarget>0?+D.dailyTarget:760;
+let tt;function toast(m,bad){const t=$('#toast');t.textContent=m;t.className='show'+(bad?' bad':'');clearTimeout(tt);tt=setTimeout(()=>t.className='',3200)}
+const busy=b=>$('#loader').classList.toggle('on',b);
+function fail(e){busy(false);const m=(e&&e.message)||String(e);toast(/permission/i.test(m)||(e&&e.code==='PERMISSION_DENIED')?'Firebase rules blocked this. Check database rules.':'Network/Firebase error: '+m,1)}
+function amt(v){v=parseFloat(v);if(!isFinite(v)||v<=0||v>10000000)return null;return Math.round(v*100)/100}
+
+db.ref('.info/connected').on('value',s=>{const o=s.val()===true;$('#dot').className='dot'+(o?' ok':'');$('#cs').textContent=o?'Firebase connected':'Offline / connecting…'});
+$('#mob').value=localStorage.getItem('lastMobile')||'';
+$('#mob').addEventListener('input',e=>e.target.value=e.target.value.replace(/\D/g,'').slice(0,10));
+$('#mob').addEventListener('keydown',e=>{if(e.key==='Enter')$('#go').click()});
+$('#go').onclick=()=>{const m=$('#mob').value.trim();if(!/^\d{10}$/.test(m))return toast('Enter a valid 10-digit mobile number',1);login(m)};
+function login(m){busy(true);M=m;localStorage.setItem('lastMobile',m);R=db.ref('users/'+m);
+ const to=setTimeout(()=>{if(!D)fail({message:'Taking too long. Check internet or rules.'})},12000);
+ R.on('value',s=>{clearTimeout(to);
+  if(!s.exists()){R.set({goal:22800,dailyTarget:760,updatedAt:TS}).catch(fail);return}
+  D=s.val();D.entries=D.entries||{};busy(false);$('#login').hidden=true;$('#app').hidden=false;$('#hm').textContent=m;render()},e=>{clearTimeout(to);M=null;fail(e)})}
+function logout(){if(R)R.off();R=D=M=null;$('#app').hidden=true;$('#login').hidden=false;show('home')}
+$('#lo').onclick=logout;
+
+function show(p){page=p;$$('.page').forEach(x=>x.classList.toggle('on',x.id==='p-'+p));$$('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===p));scrollTo(0,0);if(p==='users')loadUsers();if(D)render()}
+$$('nav button').forEach(b=>b.onclick=()=>show(b.dataset.p));$('#hu').onclick=()=>show('users');
+
+function render(){
+ const t=new Date(),y=t.getFullYear(),m=t.getMonth(),es=mEnt(y,m),sv=sum(es),g=goal(),rem=Math.max(g-sv,0),pc=Math.min(sv/g*100,100);
+ $('#mt').textContent=MN[m]+' '+y;$('#sg').textContent=inr(g);$('#ss').textContent=inr(sv);$('#sr').textContent=inr(rem);$('#sd').textContent=inr(tgt());$('#sn').textContent=es.length;
+ $('#stt').textContent=inr(D.entries[dk(y,m,t.getDate())]||0);$('#pct').textContent=Math.round(pc)+'%';
+ $('#ring').style.strokeDashoffset=326.7*(1-pc/100);$('#dn').style.strokeDasharray=(pc/100*238.8)+' 238.8';
+ $('#sm').textContent=M;if(document.activeElement.id!=='ig')$('#ig').value=D.goal||22800;if(document.activeElement.id!=='id')$('#id').value=D.dailyTarget||760;
+ const vy=vd.getFullYear(),vm=vd.getMonth(),label=MN[vm]+' '+vy;$$('.mtl').forEach(e=>e.textContent=label);
+ // calendar
+ let h=['S','M','T','W','T','F','S'].map(d=>`<div class="h">${d}</div>`).join('');
+ for(let i=0;i<new Date(vy,vm,1).getDay();i++)h+='<div class="cd e"></div>';
+ const dim=new Date(vy,vm+1,0).getDate(),tk=dk(y,m,t.getDate());
+ for(let d=1;d<=dim;d++){const k=dk(vy,vm,d),a=+D.entries[k]||0;
+  h+=`<div class="cd${a>0?' s':''}${k===tk?' t':''}" data-d="${k}">${d}${a>0?`<small>${a.toLocaleString('en-IN',{maximumFractionDigits:0})}</small>`:''}</div>`}
+ $('#cal').innerHTML=h;
+ // report
+ const re=mEnt(vy,vm),rs=sum(re),rp=Math.min(rs/g*100,100);
+ $('#rh').textContent='Savings report – '+label+' ('+M+')';
+ $('#rs').innerHTML=[['Total savings',inr(rs)],['Monthly goal',inr(g)],['Remaining',inr(Math.max(g-rs,0))],['Completed',rp.toFixed(1)+'%'],['Saving days',re.length],['Daily target',inr(tgt())]].map(([a,b])=>`<div class="st"><span>${a}</span><b>${esc(b)}</b></div>`).join('');
+ $('#rt').innerHTML=re.length?`<table><tr><th>Date</th><th>Amount</th></tr>${re.map(([k,v])=>`<tr><td>${esc(k.split('-').reverse().join('-'))}</td><td>${inr(v)}</td></tr>`).join('')}<tr><th>Total</th><th>${inr(rs)}</th></tr></table>`:'<p class="lg">No savings recorded this month.</p>'}
+$('#cal').onclick=e=>{const c=e.target.closest('[data-d]');if(c)openM(c.dataset.d)};
+const mv=n=>{vd.setMonth(vd.getMonth()+n);render()};
+$('#cp').onclick=$('#rp').onclick=()=>mv(-1);$('#cn').onclick=$('#rn').onclick=()=>mv(1);
+
+function openM(k){mdate=k;$('#md').textContent=k.split('-').reverse().join('-');$('#ma').value=D.entries[k]||'';$('#mD').hidden=!D.entries[k];$('#modal').classList.add('on');setTimeout(()=>$('#ma').focus(),100)}
+const closeM=()=>$('#modal').classList.remove('on');$('#mC').onclick=closeM;$('#modal').onclick=e=>{if(e.target.id==='modal')closeM()};
+$('#mS').onclick=()=>{const a=amt($('#ma').value);if(a===null)return toast('Enter a valid amount greater than 0',1);busy(true);
+ R.update({['entries/'+mdate]:a,updatedAt:TS}).then(()=>{busy(false);closeM();toast('Saved ✓')}).catch(fail)};
+$('#mD').onclick=()=>{if(!confirm('Delete this entry?'))return;busy(true);R.update({['entries/'+mdate]:null,updatedAt:TS}).then(()=>{busy(false);closeM();toast('Entry deleted')}).catch(fail)};
+$('#qs').onclick=()=>{const a=amt($('#qa').value);if(a===null)return toast('Enter a valid amount greater than 0',1);
+ const t=new Date(),k=dk(t.getFullYear(),t.getMonth(),t.getDate());busy(true);
+ R.child('entries/'+k).transaction(c=>Math.round(((+c||0)+a)*100)/100).then(()=>{R.child('updatedAt').set(TS);busy(false);$('#qa').value='';toast('Added '+inr(a)+' to today ✓')}).catch(fail)};
+$('#sv').onclick=()=>{const g=amt($('#ig').value),d=amt($('#id').value);if(g===null||d===null)return toast('Enter valid goal and daily target',1);
+ busy(true);R.update({goal:g,dailyTarget:d,updatedAt:TS}).then(()=>{busy(false);toast('Settings saved ✓')}).catch(fail)};
+$('#rst').onclick=()=>{if(!confirm('Delete ALL savings entries for '+M+'? This cannot be undone.'))return;if(prompt('Type RESET to confirm')!=='RESET')return toast('Reset cancelled');
+ busy(true);R.update({entries:null,updatedAt:TS}).then(()=>{busy(false);toast('All entries deleted')}).catch(fail)};
+
+function csv(){const y=vd.getFullYear(),m=vd.getMonth(),e=mEnt(y,m),s=sum(e);
+ const rows=[['Mobile',M],['Month',MN[m]+' '+y],['Goal',goal()],['Total saved',s],['Remaining',Math.max(goal()-s,0)],['Completed %',(Math.min(s/goal()*100,100)).toFixed(1)],[],['Date','Amount'],...e];
+ const b=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}),a=document.createElement('a');
+ a.href=URL.createObjectURL(b);a.download='savings-'+M+'-'+y+'-'+pad(m+1)+'.csv';document.body.appendChild(a);a.click();a.remove();toast('CSV downloaded')}
+function preview(){const y=vd.getFullYear(),m=vd.getMonth(),e=mEnt(y,m),s=sum(e),g=goal(),p=Math.min(s/g*100,100);
+ $('#pvs').innerHTML=`<h2>Savings Report</h2><p>${esc(MN[m]+' '+y)} · Mobile ${esc(M)}</p>
+ <table><tr><td>Monthly goal</td><td>${inr(g)}</td></tr><tr><td>Total savings</td><td>${inr(s)}</td></tr><tr><td>Remaining</td><td>${inr(Math.max(g-s,0))}</td></tr><tr><td>Goal completed</td><td>${p.toFixed(1)}%</td></tr><tr><td>Saving days</td><td>${e.length}</td></tr></table>
+ ${e.length?`<table><tr><th>Date</th><th>Amount</th></tr>${e.map(([k,v])=>`<tr><td>${esc(k.split('-').reverse().join('-'))}</td><td>${inr(v)}</td></tr>`).join('')}<tr><th>Total</th><th>${inr(s)}</th></tr></table>`:'<p>No savings recorded this month.</p>'}
+ <p style="font-size:12px">Printed on ${new Date().toLocaleDateString('en-IN')}</p>`;
+ $('#pv').classList.add('on');document.body.classList.add('pvon');$('#pv').scrollTop=0}
+function closePv(){$('#pv').classList.remove('on');document.body.classList.remove('pvon')}
+$('#pvc').onclick=closePv;$('#pvp').onclick=()=>print();
+$('#csv').onclick=$('#csv2').onclick=csv;$('#prt').onclick=$('#prt2').onclick=preview;
+
+let UD=[];
+function loadUsers(){busy(true);db.ref('users').once('value').then(s=>{busy(false);const v=s.val()||{};
+ UD=Object.entries(v).map(([k,u])=>{const es=Object.values(u.entries||{}).reduce((t,x)=>t+(+x||0),0);return{k,es,g:+u.goal||0,u:u.updatedAt||0}}).sort((a,b)=>b.u-a.u);drawUsers()}).catch(fail)}
+function drawUsers(){const q=$('#us').value.trim(),l=UD.filter(u=>u.k.includes(q));
+ $('#ut').textContent=l.length;$('#uc').textContent=inr(l.reduce((t,u)=>t+u.es,0));
+ $('#ul').innerHTML=l.length?`<table><tr><th>Mobile</th><th>Saved</th><th>Goal</th><th>%</th><th>Updated</th></tr>${l.map(u=>`<tr><td>${esc(u.k)}</td><td>${inr(u.es)}</td><td>${inr(u.g)}</td><td>${u.g?Math.round(u.es/u.g*100):0}%</td><td>${u.u?new Date(u.u).toLocaleDateString('en-IN'):'-'}</td></tr>`).join('')}</table>`:'<p class="lg">No users found.</p>'}
+$('#us').oninput=drawUsers;$('#ur').onclick=loadUsers;
+</script></body></html>
